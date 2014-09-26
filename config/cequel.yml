@@ -1,0 +1,22 @@
+development:
+  host: '127.0.0.1'
+  port: 9042
+  keyspace: high_caridinality_indexing_development
+  max_retries: 3
+
+test:
+  host: '127.0.0.1'
+  port: 9042
+  keyspace: high_caridinality_indexing_test
+  max_retries: 3
+
+production:
+  hosts:
+    - 'cass1.high_caridinality_indexing.biz'
+    - 'cass2.high_caridinality_indexing.biz'
+    - 'cass3.high_caridinality_indexing.biz'
+  port: 9042
+  keyspace: high_caridinality_indexing_production
+  username: 'myappuser'
+  password: 'password1'
+  max_retries: 3
