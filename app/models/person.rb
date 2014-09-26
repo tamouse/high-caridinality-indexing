@@ -1,5 +1,6 @@
 class Person
   include Cequel::Record
+  # include ActiveModel::Serialization
 
   key :id, :uuid, auto: true
 
@@ -15,27 +16,19 @@ class Person
   # Class Methods
   ## Aggregate search methods
   def self.find_all_by_family_name(q)
-    people = FamilyNameIdx.select(:people_ids).where(id: q).first
-    return [] unless people
-    where(id: people.people_ids.to_a)
+    where(id: FamilyNameIdx.find_people_ids(q).to_a)
   end
 
   def self.find_all_by_given_name(q)
-    people = GivenNameIdx.select(:people_ids).where(id: q).first
-    return [] unless people
-    where(id: people.people_ids.to_a)
+    where(id: GivenNameIdx.find_people_ids(q).to_a)
   end
 
   def self.find_all_by_email(q)
-    people = EmailIdx.select(:people_ids).where(id: q).first
-    return [] unless people
-    where(id: people.people_ids.to_a)
+    where(id: EmailIdx.find_people_ids(q).to_a)
   end
 
   def self.find_all_by_phone(q)
-    people = PhoneIdx.select(:people_ids).where(id: q).first
-    return [] unless people
-    where(id: people.people_ids.to_a)
+    where(id: PhoneIdx.find_people_ids(q).to_a)
   end
 
   # Instance Methods
@@ -45,6 +38,11 @@ class Person
 
   def to_s
     [full_name, email, phone].join(", ")
+  end
+
+  def as_json
+    # NOTE Need to do this to get the actual ID as a string in the JSON
+    attributes.merge(id: id.to_s)
   end
 
   private
