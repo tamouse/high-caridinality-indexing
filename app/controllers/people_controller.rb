@@ -22,6 +22,14 @@ class PeopleController < ApplicationController
     render json: @people.as_json
   end
 
+  def show
+    if @person
+      render json: @person.as_json
+    else
+      render status: 404
+    end
+  end
+
   def create
     @person = Person.new(person_params)
     if @person.save
@@ -33,7 +41,7 @@ class PeopleController < ApplicationController
 
   private
   def find_person    
-    @person= Person.find(params[:id]) if params[:id]
+    @person= Person.find_by_id(params[:id]) if params[:id]
   end
 
   def person_params
