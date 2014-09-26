@@ -14,5 +14,7 @@ group :development, :test do
   gem 'awesome_print'
   gem 'rspec-rails', '~> 3.1.0'
   gem 'cucumber-rails', '~> 1.4.1', require: false
+  gem 'factory_girl_rails', '~> 4.0'
+  gem 'faker'
 end
 
