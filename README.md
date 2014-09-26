@@ -168,6 +168,6 @@ Similarly, we'll wire up the remaining indexes. Judiciously using the same field
 
 [hcperf]: http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_when_use_index_c.html?scroll=concept_ds_sgh_yzz_zj__when-no-index 
 
-[ceque]: https://github.com/cequel/cequel 
+[cequel]: https://github.com/cequel/cequel 
 
 [cqlset]: http://www.datastax.com/documentation/cql/3.1/cql/cql_using/use_set_t.html "CQL Set Documentation" 
