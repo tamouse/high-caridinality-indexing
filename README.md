@@ -132,6 +132,11 @@ def self.update_index(id:, person_id:)
   index.send(:update)
   find_by_id(id)
 end
+
+def self.find_people_ids(query)
+  this_id = find_by_id(query)
+  this_id.people_ids if this_id
+end
 ```
 
 This will called from the `Person` model in a callback when the record is saved. We'll also make a method to enable us to retrieve all the people that have the same family name.
@@ -157,7 +162,9 @@ end
 
 Similarly, we'll wire up the remaining indexes. Judiciously using the same field names in each lookup table allows us to also pull out the `update_indexes` method, and another method, `find_people_ids` which will be used in finders above, into a concern, `LookupIndex` to keep things DRY.
 
+## Composite Keys
 
+The `FullnameIdx` lookup table creates a composite key where you need to specify both the family name and the given name. It breaks the `LookupIndex` convention, though, so we can't include it in that table.
 
 
 <!-- References -->
