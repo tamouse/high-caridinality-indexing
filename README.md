@@ -78,6 +78,86 @@ Just do the typical:
     bin/rake cequel:init
 
 
+## Making High-Cardinality Indexes
+
+We need to make index tables that collect the id's of the main table. This is pretty simple, but it requires some manual steps to make things work properly.
+
+### Person Table
+
+Given a main data table for a person, we have columns:
+
+* id, a UUID, automatically generated
+* family name
+* given name
+* email
+* phone
+
+``` ruby
+class Person
+  include Cequel::Record
+  # include ActiveModel::Serialization
+
+  key :id, :uuid, auto: true
+
+  column :family_name, :text
+  column :given_name,  :text
+  column :email,       :text
+  column :phone,       :text
+end
+```
+
+The service can quickly provide a person record given the id. But what if you want to look up any of the other fields quickly? First blush one might think of putting a secondary index on the fields, but it turns out this does not work well with Cassandra, as it may blow performance right out of the water if crossing partitions, and digging through records.
+
+So instead, we create a lookup table to provide the indexing.
+
+For each of the fields, we'd want to provide such a table. Looking at just the lookup for the family name, we create a table:
+
+* id, a text field to contain the matching family name
+* people_ids, a [*set*][cql_set] to contain the UUIDs of all the matching person records.
+
+``` ruby
+class FamilyNameIdx
+  include Cequel::Record
+  key :id, :text
+  set :people_ids, :uuid
+end
+```
+
+Now we need to wire these together. We'll provide a *class* method on `FamilyNameIdx` to update the index:
+
+``` ruby
+def self.update_index(id:, person_id:)
+  index = new(id: id)
+  index.people_ids << person_id
+  index.send(:update)
+  find_by_id(id)
+end
+```
+
+This will called from the `Person` model in a callback when the record is saved. We'll also make a method to enable us to retrieve all the people that have the same family name.
+
+``` ruby
+after_save :update_indexes
+
+# ...
+
+# Finders
+def self.find_all_by_family_name(q)
+  where(id: FamilyNameIdx.find_people_ids(q).to_a)
+end
+
+# ...
+
+private
+
+def update_indexes
+  FamilyNameIdx.update_index(id: self.family_name, person_id: self.id) if self.family_name
+end
+```
+
+Similarly, we'll wire up the remaining indexes. Judiciously using the same field names in each lookup table allows us to also pull out the `update_indexes` method, and another method, `find_people_ids` which will be used in finders above, into a concern, `LookupIndex` to keep things DRY.
+
+
 
 
 <!-- References -->
@@ -87,3 +167,7 @@ Just do the typical:
 [gettingstarted]: http://www.datastax.com/documentation/cassandra/2.1/cassandra/gettingStartedCassandraIntro.html
 
 [hcperf]: http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_when_use_index_c.html?scroll=concept_ds_sgh_yzz_zj__when-no-index 
+
+[ceque]: https://github.com/cequel/cequel 
+
+[cqlset]: http://www.datastax.com/documentation/cql/3.1/cql/cql_using/use_set_t.html "CQL Set Documentation" 
