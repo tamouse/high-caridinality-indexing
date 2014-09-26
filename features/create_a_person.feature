@@ -14,7 +14,20 @@ Feature: Create a Person
     And I receive back the information for the person
     And the attributes match
 
-  
-  
-  
-  
+  Scenario: Try to create a person with no family name
+    Given a set of attributes without a family name
+    When I create a new person
+    Then I get a 400 response
+    And I get some errors
+    And with error message "Unable to save person"
+    And with "family_name" containing:
+      |can't be blank|
+
+  Scenario: Try to create a person with no email
+    Given a set of attributes without an email
+    When I create a new person
+    Then I get a 400 response
+    And I get some errors
+    And with error message "Unable to save person"
+    And with "email" containing:
+      |can't be blank|

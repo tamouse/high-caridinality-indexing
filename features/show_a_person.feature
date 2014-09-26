@@ -12,5 +12,7 @@ Feature: Retrieve information for a person
     Then I get a successful response
     And I receive back the information for the person
     And the attributes match
-  
-  
+
+  Scenario: Try to retrieve a non-existant person
+    When I request a person with a non-existant ID
+    Then I get a 404 response

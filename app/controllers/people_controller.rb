@@ -26,7 +26,7 @@ class PeopleController < ApplicationController
     if @person
       render json: @person.as_json
     else
-      render status: 404
+      render nothing: true, status: 404
     end
   end
 
@@ -35,13 +35,13 @@ class PeopleController < ApplicationController
     if @person.save
       render json: @person.as_json
     else
-      render json: {status: "500", message: "Unable to save person", errors: @person.errors }
+      render json: {status: "400", message: "Unable to save person", errors: @person.errors }, status: 400
     end
   end
 
   private
-  def find_person    
-    @person= Person.find_by_id(params[:id]) if params[:id]
+  def find_person
+    @person = Person.find_by_id(params[:id]) if params[:id]
   end
 
   def person_params

@@ -6,6 +6,14 @@ Given(/^a set of attributes for a person$/) do
   @person_params = FactoryGirl.attributes_for(:person_with_phone)
 end
 
+Given(/^a set of attributes without a family name$/) do
+  @person_params = FactoryGirl.attributes_for(:person_with_phone).reject{|k,_| k == :family_name}
+end
+
+Given(/^a set of attributes without an email$/) do
+  @person_params = FactoryGirl.attributes_for(:person_with_phone).reject{|k,_| k == :email}
+end
+
 Given(/^a person$/) do
   step("a set of attributes for a person")
   @person = Person.create(@person_params)
@@ -60,7 +68,6 @@ Then(/^phone matches$/) do
     true
   end
 end
-
 
 Given(/^(\d+) people with the family name of "(.*?)"$/) do |count, family_name|
   count.to_i.times { Person.create(FactoryGirl.attributes_for(:person_with_phone, family_name: family_name)) }
@@ -119,4 +126,38 @@ Then(/^results have phone of "(.*?)"$/) do |phone|
   expect(@data.all?{|x| x['phone'] == phone}).to eq true
 end
 
+Given(/^(\d+) people with family and given names of "(.*?)", "(.*?)"$/) do |count, family_name, given_name|
+  count.to_i.times { Person.create(FactoryGirl.attributes_for(:person_with_phone, family_name: family_name, given_name: given_name))}
+end
 
+When(/^I search for people with the family name of "(.*?)" and given name of "(.*?)"$/) do |family_name, given_name|
+  get people_path(family_name: family_name, given_name: given_name)
+end
+
+Then(/^results have the family name of "(.*?)" and given name of "(.*?)"$/) do |family_name, given_name|
+  step(%Q{results have family name of "#{family_name}"})
+  step(%Q{results have given name of "#{given_name}"})
+end
+
+
+When(/^I request a person with a non\-existant ID$/) do
+  get "#{people_path}/#{SecureRandom.uuid}"
+end
+
+Then(/^I get a (\d+) response$/) do |status_code|
+  expect(last_response.status).to eq status_code.to_i
+end
+
+
+Then(/^I get some errors$/) do
+  @data = JSON.parse(last_response.body)
+end
+
+Then(/^with error message "(.*?)"$/) do |message|
+  expect(@data['message']).to eq "Unable to save person"
+end
+
+Then(/^with "(.*?)" containing:$/) do |field, table|
+  # table is a Cucumber::Ast::Table
+ expect(table.diff!([@data['errors'][field]])).to eq nil
+end

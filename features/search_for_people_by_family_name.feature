@@ -13,10 +13,10 @@ Feature: Search for people by family name
     Then I get a successful response
     And I receive 10 results
     And results have family name of "Rodriquez"
-  
-  
 
-
-  
-  
+  Scenario: Search for non-existant family name
+    Given 10 people
+    When I search for people with the family name "12345"
+    Then I get a successful response
+    And I receive 0 results
   
