@@ -53,7 +53,59 @@ class Person
     attributes.merge(id: id.to_s)
   end
 
-  private
+  # private
+
+  # In version 2, moving the indexes inside Person as private internal classes.
+  # No one should be able to access the indexes directly.
+
+  class FamilyNameIdx
+    include Cequel::Record
+    key :id, :text
+    set :people_ids, :uuid
+    include LookupIndex
+  end
+
+  class GivenNameIdx
+    include Cequel::Record
+    key :id, :text
+    set :people_ids, :uuid
+    include LookupIndex
+  end
+
+  class EmailIdx
+    include Cequel::Record
+    key :id, :text
+    set :people_ids, :uuid
+    include LookupIndex
+  end
+
+  class PhoneIdx
+    include Cequel::Record
+    key :id, :text
+    set :people_ids, :uuid
+    include LookupIndex
+  end
+
+  class FullnameIdx
+    include Cequel::Record
+
+    key :family_name, :text
+    key :given_name, :text
+    set :people_ids, :uuid
+
+    def self.update_index(family_name:, given_name:, person_id:)
+      index = new(family_name: family_name, given_name: given_name)
+      index.people_ids << person_id
+      index.send(:update)
+      find_by_family_name_and_given_name(family_name, given_name)
+    end
+
+    def self.find_people_ids(family_name:, given_name:)
+      this_id = find_by_family_name_and_given_name(family_name, given_name)
+      this_id.people_ids if this_id
+    end
+
+  end
 
   def update_indexes
     FamilyNameIdx.update_index(id: self.family_name, person_id: self.id) if self.family_name
